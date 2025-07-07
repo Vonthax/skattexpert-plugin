@@ -10,14 +10,21 @@ const {
   APIGW_CLIENT_SECRET
 } = process.env;
 
-// Dummy authorize-endpoint (klargör för ChatGPT-editorn)
+// 1) OAuth “authorize” – bara för att ChatGPT-editorn / UI ska få OK.
+//    Vi skickar tillbaka en dummy-code till redirect_uri.
 app.get("/authorize", (req, res) => {
-  res
-    .status(400)
-    .json({ error: "Authorization endpoint not used for client_credentials flow" });
+  const { redirect_uri, state } = req.query;
+  if (!redirect_uri) {
+    return res.status(400).send("Missing redirect_uri");
+  }
+  // Bygg retur-URL med code och (om medskickat) state
+  const url = new URL(redirect_uri);
+  url.searchParams.set("code", "dummy-code");
+  if (state) url.searchParams.set("state", state);
+  return res.redirect(url.toString());
 });
 
-// Proxy för token-utbyte
+// 2) Token-endpoint: proxar klient-credentials-utbytet
 app.post("/token", async (req, res) => {
   try {
     const tokenResp = await axios.post(
@@ -43,7 +50,27 @@ app.post("/token", async (req, res) => {
   }
 });
 
-// Proxya alla GET-anrop mot Skatteverkets API
+// 3) Helper för att hämta token internt
+async function getToken() {
+  const resp = await axios.post(
+    "https://oauth.skatteverket.se/token",
+    new URLSearchParams({
+      grant_type: "client_credentials",
+      scope: "fos rattsligaregler"
+    }),
+    {
+      headers: {
+        Authorization:
+          "Basic " +
+          Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    }
+  );
+  return resp.data.access_token;
+}
+
+// 4) Catch-all GET → proxar anrop mot Skatteverkets riktiga API
 app.get("/*", async (req, res) => {
   try {
     const token = await getToken();
@@ -63,26 +90,6 @@ app.get("/*", async (req, res) => {
       .json(e.response?.data || { error: e.message });
   }
 });
-
-// Hämta token (återanvänds i GET-proxyn)
-async function getToken() {
-  const resp = await axios.post(
-    "https://oauth.skatteverket.se/token",
-    new URLSearchParams({
-      grant_type: "client_credentials",
-      scope: "fos rattsligaregler"
-    }),
-    {
-      headers: {
-        Authorization:
-          "Basic " +
-          Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64"),
-        "Content-Type": "application/x-www-form-urlencoded"
-      }
-    }
-  );
-  return resp.data.access_token;
-}
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on ${port}`));

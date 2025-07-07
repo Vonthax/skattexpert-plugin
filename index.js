@@ -10,7 +10,61 @@ const {
   APIGW_CLIENT_SECRET
 } = process.env;
 
-// Hämta token
+// Dummy authorize-endpoint (klargör för ChatGPT-editorn)
+app.get("/authorize", (req, res) => {
+  res
+    .status(400)
+    .json({ error: "Authorization endpoint not used for client_credentials flow" });
+});
+
+// Proxy för token-utbyte
+app.post("/token", async (req, res) => {
+  try {
+    const tokenResp = await axios.post(
+      "https://oauth.skatteverket.se/token",
+      new URLSearchParams({
+        grant_type: "client_credentials",
+        scope: "fos rattsligaregler"
+      }),
+      {
+        headers: {
+          Authorization:
+            "Basic " +
+            Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString("base64"),
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      }
+    );
+    res.json(tokenResp.data);
+  } catch (e) {
+    res
+      .status(e.response?.status || 500)
+      .json(e.response?.data || { error: e.message });
+  }
+});
+
+// Proxya alla GET-anrop mot Skatteverkets API
+app.get("/*", async (req, res) => {
+  try {
+    const token = await getToken();
+    const url = `https://api.skatteverket.se${req.path}`;
+    const apiRes = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "x-ibm-client-id": APIGW_CLIENT_ID,
+        "x-ibm-client-secret": APIGW_CLIENT_SECRET
+      },
+      params: req.query
+    });
+    res.json(apiRes.data);
+  } catch (e) {
+    res
+      .status(e.response?.status || 500)
+      .json(e.response?.data || { error: e.message });
+  }
+});
+
+// Hämta token (återanvänds i GET-proxyn)
 async function getToken() {
   const resp = await axios.post(
     "https://oauth.skatteverket.se/token",
@@ -29,25 +83,6 @@ async function getToken() {
   );
   return resp.data.access_token;
 }
-
-// Proxya alla GET-anrop
-app.get("/*", async (req, res) => {
-  try {
-    const token = await getToken();
-    const url = `https://api.skatteverket.se${req.path}`;
-    const apiRes = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "x-ibm-client-id": APIGW_CLIENT_ID,
-        "x-ibm-client-secret": APIGW_CLIENT_SECRET
-      },
-      params: req.query
-    });
-    res.json(apiRes.data);
-  } catch (e) {
-    res.status(e.response?.status || 500).json(e.response?.data || { error: e.message });
-  }
-});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on ${port}`));

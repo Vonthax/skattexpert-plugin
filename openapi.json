@@ -36,8 +36,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status":   { "type": "string", "example": "Aktiv" },
-                    "giltig_till": { "type": "string", "format": "date", "example": "2027-12-31" }
+                    "status": {
+                      "type": "string",
+                      "example": "Aktiv"
+                    },
+                    "giltig_till": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "2027-12-31"
+                    }
                   }
                 }
               }
@@ -61,8 +68,12 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "id":    { "type": "string" },
-                      "titel": { "type": "string" }
+                      "id": {
+                        "type": "string"
+                      },
+                      "titel": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -72,27 +83,5 @@
         }
       }
     }
-  },
-  "components": {
-    "schemas": {},
-    "securitySchemes": {
-      "oauth2": {
-        "type": "oauth2",
-        "flows": {
-          "clientCredentials": {
-            "tokenUrl": "https://oauth.skatteverket.se/token",
-            "scopes": {
-              "fos": "Åtkomst till företagsdata",
-              "rattsligaregler": "Åtkomst till rättsregler"
-            }
-          }
-        }
-      }
-    }
-  },
-  "security": [
-    {
-      "oauth2": ["fos", "rattsligaregler"]
-    }
-  ]
+  }
 }

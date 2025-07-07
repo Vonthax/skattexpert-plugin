@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Skatteverket Företags- och rättsdata API",
-    "description": "Plugin för att hämta företags- och rättsregler från Skatteverkets API",
+    "title": "Skatteverket Företags- och rättsdata + Skatteavdrag API",
+    "description": "Plugin som via proxy hanterar Skatteverkets driftsatta tjänster för företagsdata, rättsliga regler och skatteavdrag (Client Credentials-flöde hanteras i proxy:n).",
     "version": "1.0.0"
   },
   "servers": [
@@ -21,11 +21,8 @@
             "name": "orgnr",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^\\d{10}$"
-            },
-            "description": "Organisationsnummer (10 siffror)"
+            "schema": { "type": "string", "pattern": "^\\d{10}$" },
+            "description": "Organisationsnummer (10 siffror utan bindestreck)"
           }
         ],
         "responses": {
@@ -36,15 +33,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Aktiv"
-                    },
-                    "giltig_till": {
-                      "type": "string",
-                      "format": "date",
-                      "example": "2027-12-31"
-                    }
+                    "status": { "type": "string", "example": "Aktiv" },
+                    "giltig_till": { "type": "string", "format": "date", "example": "2027-12-31" }
                   }
                 }
               }
@@ -68,12 +58,83 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "id": {
-                        "type": "string"
-                      },
-                      "titel": {
-                        "type": "string"
-                      }
+                      "id": { "type": "string" },
+                      "titel": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/skatteavdrag/v2.0/{personnummer}": {
+      "get": {
+        "operationId": "getSingleSkatteavdrag",
+        "summary": "Hämta preliminära skatteuppgifter för ett personnummer",
+        "tags": ["Skatteavdrag"],
+        "parameters": [
+          {
+            "name": "personnummer",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d{10}$" },
+            "description": "Personnummer (10 siffror utan bindestreck)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Preliminära skatteuppgifter för en person",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Se tjänstebeskrivningen för fält",
+                  "properties": {
+                    "personnummer": { "type": "string" },
+                    "preliminar_skatt": { "type": "number" },
+                    "beslut_datum": { "type": "string", "format": "date" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/skatteavdrag/v2.0": {
+      "get": {
+        "operationId": "getMultipleSkatteavdrag",
+        "summary": "Hämta preliminära skatteuppgifter för flera personnummer",
+        "tags": ["Skatteavdrag"],
+        "parameters": [
+          {
+            "name": "personnummer",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^\\d{10}$" }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Komma-separerad lista av personnummer (max 1000)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Array med preliminära skatteuppgifter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "personnummer": { "type": "string" },
+                      "preliminar_skatt": { "type": "number" },
+                      "beslut_datum": { "type": "string", "format": "date" }
                     }
                   }
                 }

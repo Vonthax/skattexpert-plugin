@@ -1,18 +1,19 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.1.0",
   "info": {
     "title": "Skatteverket Företags- och rättsdata API",
-    "version": "1.0.0",
-    "description": "Plugin för att hämta företags- och rättsregler från Skatteverkets API"
+    "description": "Plugin för att hämta företags- och rättsregler från Skatteverkets API",
+    "version": "1.0.0"
   },
   "servers": [
     {
-      "url": "https://<YOUR_VERCEL_URL>"
+      "url": "https://skattexpert-plugin.vercel.app"
     }
   ],
   "paths": {
     "/foretag/{orgnr}/f-skatt": {
       "get": {
+        "operationId": "getFSkattStatus",
         "summary": "Hämta F-skatt-status för ett företag",
         "tags": ["Foretag"],
         "parameters": [
@@ -35,8 +36,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "Aktiv" },
-                    "giltig_till": { "type": "string", "format": "date", "example": "2027-12-31" }
+                    "status": {
+                      "type": "string",
+                      "example": "Aktiv"
+                    },
+                    "giltig_till": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "2027-12-31"
+                    }
                   }
                 }
               }
@@ -47,6 +55,7 @@
     },
     "/rattsregler": {
       "get": {
+        "operationId": "listRattsregler",
         "summary": "Lista tillgängliga rättsregler",
         "tags": ["Rattsregler"],
         "responses": {
@@ -72,6 +81,7 @@
     }
   },
   "components": {
+    "schemas": {},
     "securitySchemes": {
       "oauth2": {
         "type": "oauth2",

@@ -36,15 +36,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "Aktiv"
-                    },
-                    "giltig_till": {
-                      "type": "string",
-                      "format": "date",
-                      "example": "2027-12-31"
-                    }
+                    "status":   { "type": "string", "example": "Aktiv" },
+                    "giltig_till": { "type": "string", "format": "date", "example": "2027-12-31" }
                   }
                 }
               }
@@ -68,7 +61,7 @@
                   "items": {
                     "type": "object",
                     "properties": {
-                      "id": { "type": "string" },
+                      "id":    { "type": "string" },
                       "titel": { "type": "string" }
                     }
                   }
@@ -85,12 +78,11 @@
     "securitySchemes": {
       "oauth2": {
         "type": "oauth2",
-        "description": "OAuth2 Client Credentials (Skatteverket)",
         "flows": {
           "clientCredentials": {
             "tokenUrl": "https://oauth.skatteverket.se/token",
             "scopes": {
-              "fos": "Åtkomst till företagsdata (F-skatt, moms etc.)",
+              "fos": "Åtkomst till företagsdata",
               "rattsligaregler": "Åtkomst till rättsregler"
             }
           }

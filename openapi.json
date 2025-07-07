@@ -6,10 +6,8 @@
     "description": "Plugin för att hämta företags- och rättsregler från Skatteverkets API"
   },
   "servers": [
-    {
-      "url": "https://DIN-SERVER-URL"    // <-- ändra senare
-    }
-  ],
+  { "url": "https://skattexpert-plugin.vercel.app" }
+],
   "paths": {
     "/foretag/{orgnr}/f-skatt": {
       "get": {

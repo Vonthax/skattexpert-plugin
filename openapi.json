@@ -1,0 +1,65 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Skatteverket Företags- och rättsdata API",
+    "version": "1.0.0",
+    "description": "Plugin för att hämta företags- och rättsregler från Skatteverkets API"
+  },
+  "servers": [
+    {
+      "url": "https://DIN-SERVER-URL"    // <-- ändra senare
+    }
+  ],
+  "paths": {
+    "/foretag/{orgnr}/f-skatt": {
+      "get": {
+        "summary": "Hämta F-skatt-status för ett företag",
+        "parameters": [
+          {
+            "name": "orgnr",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "pattern": "^\\d{10}$" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "F-skatt-status",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        }
+      }
+    },
+    "/rattsregler": {
+      "get": {
+        "summary": "Lista rättsregler",
+        "responses": {
+          "200": {
+            "description": "Rättsregler",
+            "content": { "application/json": { "schema": { "type": "array" } } }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "oauth2": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://oauth.skatteverket.se/token",
+            "scopes": {
+              "fos": "Åtkomst företagsdata",
+              "rattsligaregler": "Åtkomst rättsregler"
+            }
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    { "oauth2": [ "fos", "rattsligaregler" ] }
+  ]
+}
+Create openapi.json

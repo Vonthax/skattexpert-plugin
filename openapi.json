@@ -6,35 +6,66 @@
     "description": "Plugin för att hämta företags- och rättsregler från Skatteverkets API"
   },
   "servers": [
-  { "url": "https://skattexpert-plugin.vercel.app" }
-],
+    {
+      "url": "https://<YOUR_VERCEL_URL>"
+    }
+  ],
   "paths": {
     "/foretag/{orgnr}/f-skatt": {
       "get": {
         "summary": "Hämta F-skatt-status för ett företag",
+        "tags": ["Foretag"],
         "parameters": [
           {
             "name": "orgnr",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "pattern": "^\\d{10}$" }
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{10}$"
+            },
+            "description": "Organisationsnummer (10 siffror)"
           }
         ],
         "responses": {
           "200": {
-            "description": "F-skatt-status",
-            "content": { "application/json": { "schema": { "type": "object" } } }
+            "description": "F-skatt-status returnerad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "Aktiv" },
+                    "giltig_till": { "type": "string", "format": "date", "example": "2027-12-31" }
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
     "/rattsregler": {
       "get": {
-        "summary": "Lista rättsregler",
+        "summary": "Lista tillgängliga rättsregler",
+        "tags": ["Rattsregler"],
         "responses": {
           "200": {
-            "description": "Rättsregler",
-            "content": { "application/json": { "schema": { "type": "array" } } }
+            "description": "Rättsregler returnerade",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "titel": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -44,12 +75,13 @@
     "securitySchemes": {
       "oauth2": {
         "type": "oauth2",
+        "description": "OAuth2 Client Credentials (Skatteverket)",
         "flows": {
           "clientCredentials": {
             "tokenUrl": "https://oauth.skatteverket.se/token",
             "scopes": {
-              "fos": "Åtkomst företagsdata",
-              "rattsligaregler": "Åtkomst rättsregler"
+              "fos": "Åtkomst till företagsdata (F-skatt, moms etc.)",
+              "rattsligaregler": "Åtkomst till rättsregler"
             }
           }
         }
@@ -57,7 +89,8 @@
     }
   },
   "security": [
-    { "oauth2": [ "fos", "rattsligaregler" ] }
+    {
+      "oauth2": ["fos", "rattsligaregler"]
+    }
   ]
 }
-Create openapi.json
